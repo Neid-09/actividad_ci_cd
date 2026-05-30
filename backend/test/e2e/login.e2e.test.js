@@ -1,4 +1,5 @@
 const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
 const { expect } = require('chai');
 
 const FRONTEND_URL = 'http://localhost:5173';
@@ -9,7 +10,15 @@ describe('Login e2e con Selenium', function () {
 	let driver;
 
 	before(async function () {
-		driver = await new Builder().forBrowser('MicrosoftEdge').build();
+		let options = new chrome.Options();
+		options.addArguments('--headless=new');
+		options.addArguments('--no-sandbox');
+		options.addArguments('--disable-dev-shm-usage');
+
+		driver = await new Builder()
+			.forBrowser('chrome')
+			.setChromeOptions(options)
+			.build();
 		await driver.manage().setTimeouts({
 			implicit: 5000,
 			pageLoad: 15000,
