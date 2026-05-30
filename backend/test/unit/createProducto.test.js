@@ -51,7 +51,7 @@ const request = require("supertest");
 const chai = require("chai");
 
 const jwtService = require("jsonwebtoken");
-jwtService.verify = () => ({ role: "admin" });
+const originalVerify = jwtService.verify;
 
 const newProduct = {
 	name: "Producto de prueba aaaaaa",
@@ -62,13 +62,19 @@ const newProduct = {
 };
 
 describe("POST /api/products", () => {
+	before(() => {
+		jwtService.verify = () => ({ role: "admin" });
+	});
+
+	after(() => {
+		jwtService.verify = originalVerify;
+	});
+
 	it("debería crear un nuevo producto con datos válidos", async () => {
 		const response = await request(app)
 			.post("/api/products")
 			.set("Authorization", `token_valido`)
 			.send(newProduct);
-
-		console.log(response.body);
 
 		chai.expect(response.status).to.equal(201);
 		const { name, description, price, stock, image_url } = response.body;
