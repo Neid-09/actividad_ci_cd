@@ -1,0 +1,54 @@
+name: Frontend E2E CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.1
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Start backend server
+        working-directory: backend
+        run: node server.js &
+
+      - name: Start frontend dev server
+        working-directory: frontend
+        run: npm run dev &
+
+      - name: Wait for servers to be ready
+        run: npx wait-on http://localhost:5000/api/products http://localhost:5173 --timeout 30000
+
+      - name: Setup virtual display (Xvfb)
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Add EdgeDriver to PATH
+        run: echo "$GITHUB_WORKSPACE/frontend/node_modules/.bin" >> $GITHUB_PATH
+
+      - name: Run E2E tests
+        working-directory: frontend
+        run: npm run test:e2e
