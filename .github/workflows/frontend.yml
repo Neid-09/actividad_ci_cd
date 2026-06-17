@@ -22,6 +22,9 @@ jobs:
             backend/package-lock.json
             frontend/package-lock.json
 
+      - name: Install Chrome and ChromeDriver
+        uses: browser-actions/setup-chrome@v1
+
       - name: Install backend dependencies
         working-directory: backend
         run: npm install
@@ -40,14 +43,6 @@ jobs:
 
       - name: Wait for servers to be ready
         run: npx wait-on http://localhost:5000/api/products http://localhost:5173 --timeout 30000
-
-      - name: Setup virtual display (Xvfb)
-        run: |
-          Xvfb :99 -screen 0 1920x1080x24 &
-          echo "DISPLAY=:99" >> $GITHUB_ENV
-
-      - name: Add EdgeDriver to PATH
-        run: echo "$GITHUB_WORKSPACE/frontend/node_modules/.bin" >> $GITHUB_PATH
 
       - name: Run E2E tests
         working-directory: frontend

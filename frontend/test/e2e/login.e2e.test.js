@@ -1,4 +1,5 @@
 import { Builder, By, until } from "selenium-webdriver";
+import { Options } from "selenium-webdriver/chrome.js";
 import { expect } from "chai";
 
 const FRONTEND_URL = "http://localhost:5173";
@@ -9,7 +10,25 @@ describe("Login e2e con Selenium", function () {
 	let driver;
 
 	before(async function () {
-		driver = await new Builder().forBrowser("MicrosoftEdge").build();
+		const options = new Options();
+		const isCI = process.env.CI === "true";
+
+		if (isCI) {
+			options.addArguments(
+				"--headless=new",
+				"--no-sandbox",
+				"--disable-dev-shm-usage",
+				"--window-size=1920,1080",
+				"--disable-gpu",
+			);
+		} else {
+			options.addArguments("--start-maximized");
+		}
+
+		driver = await new Builder()
+			.forBrowser("chrome")
+			.setChromeOptions(options)
+			.build();
 		await driver.manage().setTimeouts({
 			implicit: 5000,
 			pageLoad: 15000,
